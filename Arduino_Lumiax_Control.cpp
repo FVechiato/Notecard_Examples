@@ -1,5 +1,4 @@
 
-
 #include <Arduino.h>
 #include <ModbusMaster.h>
 #include <Notecard.h>
@@ -39,10 +38,11 @@ struct ModbusData {
 
 // instantiate ModbusMaster object
 ModbusMaster node;
-
 Notecard notecard;
+
+//Define Product_ID and Default Values
 #define productUID "com.blues.voltaic_batterycont"
-double freq = 600;
+double freq = 5;
 double Load = 0;
 #define interruptAttnPin D9
 
@@ -116,8 +116,6 @@ void notecardInit(){
 
   notecard.begin();
   notecard.setDebugOutputStream(usbSerial);
-// read the hub.set and only set it if necessary 
-// add a second prodctUID var
 
   J *req = notecard.newRequest("hub.set");
   JAddStringToObject(req, "product", productUID);
@@ -153,15 +151,14 @@ void setLoad(){
 
     if (Load == 1){
     Serial.println("Lumiax Output ON");
-    // Write the value to the coil
     node.writeSingleCoil(0x0000, 1);
-    delay(1000);  // Delay for stability, adjust as needed
+    delay(1000);  
   }
   else{
     Serial.println("Lumiax Output OFF");
     // Write the value to the coil
     node.writeSingleCoil(0x0000, 0);
-    //delay(1000);  // Delay for stability, adjust as needed
+    delay(1000);  
   }
 }
 
@@ -210,6 +207,8 @@ int readModbusRegister(uint16_t regAddress)
 
 ModbusData  GetData(){
 
+  // Read Variables and return struct with all of them
+
   ModbusData data;
 
   data.batteryVoltage = readModbusRegister(Battery_Voltage_Address);
@@ -241,6 +240,9 @@ ModbusData  GetData(){
 
 
 void AttnPinInterrupt(){
+   
+  //Executed when new Enviroment Variables are pushed down from Notehub
+
   detachInterrupt(digitalPinToInterrupt(interruptAttnPin));
   usbSerial.println("///////ATTENTION PIN INTERRUPT//////////"); 
   attnDisarm();
@@ -254,15 +256,15 @@ void AttnPinInterrupt(){
 
 void Lumiax_init(){
 
-       Serial.println("Setting Lumiax to Manual Mode");
-       uint8_t result = node.writeSingleRegister(Controller_fun_stat3, 0x0A);
-       if (result == node.ku8MBSuccess) {
-        Serial.println("Write success!");
-        } else {
-        Serial.print("Write failed! Error: ");
-        Serial.println(result, HEX);
-        }
-        setLoad();
+  Serial.println("Setting Lumiax to Manual Mode");
+  uint8_t result = node.writeSingleRegister(Controller_fun_stat3, 0x0A);
+  if (result == node.ku8MBSuccess) {
+  Serial.println("Write success!");
+  } else {
+  Serial.print("Write failed! Error: ");
+  Serial.println(result, HEX);
+  }
+  setLoad();
 
 
 }
@@ -271,6 +273,7 @@ void setup()
   
   pinMode(MAX485_RE_NEG, OUTPUT);
   pinMode(MAX485_DE, OUTPUT);
+
   // Init in receive mode
   digitalWrite(MAX485_RE_NEG, 0);
   digitalWrite(MAX485_DE, 0);
@@ -286,7 +289,7 @@ void setup()
   node.preTransmission(preTransmission);
   node.postTransmission(postTransmission);
 
-  pinMode(interruptAttnPin, INPUT_PULLDOWN); // Set D1 as an input with a pull-up resistor
+  pinMode(interruptAttnPin, INPUT_PULLDOWN); 
   attachInterrupt(digitalPinToInterrupt(interruptAttnPin), AttnPinInterrupt, RISING);
   Lumiax_init();
   GetEnvVar();
@@ -297,14 +300,11 @@ void setup()
 
 void loop()
 {
-     ModbusData data;
-     uint16_t CFS3 = node.readInputRegisters(Controller_fun_stat3 , 1);
-     Serial.println("CFS3 read");
-     Serial.println(CFS3, BIN);
-     data = GetData();
-     NoteAdd(data);
-     Serial.println("Waiting " + String(freq) + " seconds");
-     delay(freq*1000);
+  ModbusData data;
+  data = GetData();
+  NoteAdd(data);
+  Serial.println("Waiting " + String(freq) + " seconds");
+  delay(freq*1000);
 
 
 }
