@@ -42,7 +42,7 @@ ModbusMaster node;
 
 Notecard notecard;
 #define productUID "com.blues.voltaic_batterycont"
-double freq = 5;
+double freq = 600;
 double Load = 0;
 #define interruptAttnPin D9
 
@@ -302,7 +302,7 @@ void loop()
      Serial.println("CFS3 read");
      Serial.println(CFS3, BIN);
      data = GetData();
-     //NoteAdd(data);
+     NoteAdd(data);
      Serial.println("Waiting " + String(freq) + " seconds");
      delay(freq*1000);
 
