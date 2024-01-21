@@ -160,7 +160,7 @@ void task2Function(void *parameter) {
   }
 }
 
-void task3Function (void *parameter) {
+void NotecardMonitor (void *parameter) {
   (void)parameter; // Unused parameter
 
   while (1) {
@@ -178,7 +178,7 @@ void setup() {
   // Create tasks
   xTaskCreatePinnedToCore(task1Function, "Task1", 4096, NULL, 1, &task1Handle, 0);
   xTaskCreatePinnedToCore(task2Function, "Task2", 4096, NULL, 1, &task2Handle, 1);
-  xTaskCreatePinnedToCore(task3Function, "Task3", 4096, NULL, 1, &task3Handle, 1);
+  xTaskCreatePinnedToCore(NotecardMonitor, "Task3", 4096, NULL, 1, &task3Handle, 1);
 }
 
 void loop() {
